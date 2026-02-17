@@ -1,0 +1,41 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "ESNext",
+        "allowJs": true,
+        "resolveJsonModule": true,
+        "sourceMap": true,
+        "declaration": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "outDir": "dist",
+        "baseUrl": ".",
+        "paths": {
+            "@secure-task-manage-app-angular/data": [
+                "libs/data/src/lib/entities.ts"
+            ],
+            "@secure-task-manage-app-angular/data/*": [
+                "libs/data/src/lib/*"
+            ],
+            "@secure-task-manage-app-angular/auth": [
+                "libs/auth/src/lib/rbac.service.ts"
+            ],
+            "@secure-task-manage-app-angular/auth/*": [
+                "libs/auth/src/lib/*"
+            ]
+        },
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": [
+        "src/**/*",
+        "libs/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}
