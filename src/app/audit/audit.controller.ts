@@ -26,7 +26,9 @@ export class AuditController {
     @Post()
     async create(@Req() req: any, @Body() body: { action: string, resourceType?: string, resourceId?: string }) {
         let action: ActionType = ActionType.UPDATE; // Default
-        let resourceType = body.resourceType || 'UNKNOWN';
+
+        // Prioritize incoming resourceType if it's not 'UNKNOWN'
+        let resourceType = body.resourceType && body.resourceType !== 'UNKNOWN' ? body.resourceType : 'UNKNOWN';
 
         const actionUpper = body.action.toUpperCase();
         if (Object.values(ActionType).includes(body.action as ActionType)) {
@@ -41,13 +43,21 @@ export class AuditController {
             action = ActionType.READ;
         }
 
-        if (body.action.includes('Profile')) {
-            resourceType = 'USER';
-        } else if (body.action.includes('Task')) {
-            resourceType = 'TASK';
-        } else if (body.action.includes('Organization')) {
-            resourceType = 'ORGANIZATION';
+        // Improved fallback detection if still UNKNOWN
+        if (resourceType === 'UNKNOWN') {
+            if (body.action.match(/Profile|Security|Preferences|User/i)) {
+                resourceType = 'User';
+            } else if (body.action.match(/Task/i)) {
+                resourceType = 'Task';
+            } else if (body.action.match(/Organization|Org/i)) {
+                resourceType = 'Organization';
+            }
         }
+
+        // Normalize labels for UI consistency (Title Case)
+        if (resourceType === 'USER') resourceType = 'User';
+        if (resourceType === 'TASK') resourceType = 'Task';
+        if (resourceType === 'ORGANIZATION') resourceType = 'Organization';
 
         return this.auditService.logAction(req.user.id, action, resourceType, body.resourceId);
     }
