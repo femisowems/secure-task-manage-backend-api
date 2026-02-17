@@ -24,7 +24,7 @@ export class TasksService {
     async create(user: User, taskData: Partial<Task>): Promise<Task> {
         // CreateTask: All roles allowed, orgId must match user's org
         if (taskData.organizationId && taskData.organizationId !== user.organizationId) {
-            this.auditService.logAction(user.id, ActionType.CREATE, 'Task', 'BLOCKED: Wrong Org');
+            await this.auditService.logAction(user.id, ActionType.CREATE, 'Task', 'BLOCKED: Wrong Org');
             throw new ForbiddenException('Cannot create task in another organization');
         }
 
@@ -38,7 +38,7 @@ export class TasksService {
         // but setting ID column usually enough.
 
         const saved = await this.tasksRepo.save(newTask);
-        this.auditService.logAction(user.id, ActionType.CREATE, 'Task', saved.id);
+        await this.auditService.logAction(user.id, ActionType.CREATE, 'Task', saved.id);
         return saved;
     }
 
@@ -72,14 +72,13 @@ export class TasksService {
 
         const allowed = await this.rbacService.canUpdateTask(user, task);
         if (!allowed) {
-            this.auditService.logAction(user.id, ActionType.UPDATE, 'Task', `BLOCKED: Unauthorized ${id}`);
+            await this.auditService.logAction(user.id, ActionType.UPDATE, 'Task', `BLOCKED: Unauthorized ${id}`);
             throw new ForbiddenException('Cannot update this task');
         }
 
         Object.assign(task, updateData);
         const updated = await this.tasksRepo.save(task);
-
-        this.auditService.logAction(user.id, ActionType.UPDATE, 'Task', id);
+        await this.auditService.logAction(user.id, ActionType.UPDATE, 'Task', id);
         return updated;
     }
 
@@ -89,11 +88,11 @@ export class TasksService {
 
         const allowed = await this.rbacService.canDeleteTask(user, task);
         if (!allowed) {
-            this.auditService.logAction(user.id, ActionType.DELETE, 'Task', `BLOCKED: Unauthorized ${id}`);
+            await this.auditService.logAction(user.id, ActionType.DELETE, 'Task', `BLOCKED: Unauthorized ${id}`);
             throw new ForbiddenException('Cannot delete this task');
         }
 
         await this.tasksRepo.remove(task);
-        this.auditService.logAction(user.id, ActionType.DELETE, 'Task', id);
+        await this.auditService.logAction(user.id, ActionType.DELETE, 'Task', id);
     }
 }

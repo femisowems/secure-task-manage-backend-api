@@ -1,0 +1,19 @@
+{
+    "moduleFileExtensions": [
+        "js",
+        "json",
+        "ts"
+    ],
+    "rootDir": ".",
+    "testEnvironment": "node",
+    "testRegex": ".e2e-spec.ts$",
+    "transform": {
+        "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "moduleNameMapper": {
+        "@secure-task-manage-app-angular/data/(.*)": "<rootDir>/../libs/data/src/lib/$1",
+        "@secure-task-manage-app-angular/data": "<rootDir>/../libs/data/src/lib/entities.ts",
+        "@secure-task-manage-app-angular/auth/(.*)": "<rootDir>/../libs/auth/src/lib/$1",
+        "@secure-task-manage-app-angular/auth": "<rootDir>/../libs/auth/src/lib/rbac.service.ts"
+    }
+}
