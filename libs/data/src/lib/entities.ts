@@ -47,12 +47,24 @@ export class User {
     @Column({ type: 'text', nullable: true })
     passwordHash!: string | null;
 
+    @Column({ type: 'text', nullable: true })
+    name!: string;
+
     @Column({
         type: 'simple-enum',
         enum: UserRole,
         default: UserRole.VIEWER
     })
     role!: UserRole;
+
+    @Column({ type: 'boolean', default: false })
+    mfaEnabled!: boolean;
+
+    @Column({ type: 'integer', default: 30 })
+    sessionTimeout!: number;
+
+    @Column({ type: 'simple-json', nullable: true })
+    preferences!: any;
 
     @Column({ type: 'text' })
     organizationId!: string;
@@ -84,6 +96,9 @@ export class Task {
 
     @Column({ type: 'text' })
     status!: string;
+
+    @Column({ type: 'text', nullable: true })
+    priority!: string;
 
     @Column({ type: 'text' })
     organizationId!: string;
@@ -131,4 +146,22 @@ export class AuditLog {
 
     @CreateDateColumn()
     timestamp!: Date;
+}
+
+// --------------------------------------------------
+// PERMISSION ENTITY
+// --------------------------------------------------
+@Entity('permissions')
+export class Permission {
+    @PrimaryGeneratedColumn('uuid')
+    id!: string;
+
+    @Column({ type: 'text' })
+    name!: string;
+
+    @Column({
+        type: 'simple-enum',
+        enum: UserRole
+    })
+    role!: UserRole;
 }

@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { User, Organization, Task, AuditLog } from './libs/data/src/lib/entities';
+import { User, Organization, Task, AuditLog, Permission } from './libs/data/src/lib/entities';
 import { UserRole } from './libs/data/src/lib/enums';
 import * as bcrypt from 'bcrypt';
 
@@ -8,7 +8,7 @@ async function seed() {
     const dataSource = new DataSource({
         type: 'sqlite',
         database: 'database.sqlite',
-        entities: [User, Organization, Task, AuditLog],
+        entities: [User, Organization, Task, AuditLog, Permission],
         synchronize: true,
     });
 
@@ -27,6 +27,17 @@ async function seed() {
         console.log('Created Default Organization');
     }
 
+    // 1.1 Create Child Organization
+    let childOrg = await orgRepo.findOne({ where: { name: 'Child Organization' } });
+    if (!childOrg) {
+        childOrg = orgRepo.create({
+            name: 'Child Organization',
+            parentOrganizationId: defaultOrg.id
+        });
+        await orgRepo.save(childOrg);
+        console.log('Created Child Organization');
+    }
+
     // 2. Create Admin User
     const adminEmail = 'admin@test.com';
     let admin = await userRepo.findOne({ where: { email: adminEmail } });
@@ -40,6 +51,21 @@ async function seed() {
         });
         await userRepo.save(admin);
         console.log('Created Admin User: admin@test.com / password123');
+    }
+
+    // 2.1 Create Child Org Admin
+    const childAdminEmail = 'child-admin@test.com';
+    let childAdmin = await userRepo.findOne({ where: { email: childAdminEmail } });
+    if (!childAdmin) {
+        const passwordHash = await bcrypt.hash('password123', 10);
+        childAdmin = userRepo.create({
+            email: childAdminEmail,
+            passwordHash: passwordHash,
+            role: UserRole.ADMIN,
+            organizationId: childOrg.id
+        });
+        await userRepo.save(childAdmin);
+        console.log('Created Child Admin User');
     }
 
     // 3. Create Default User
@@ -63,36 +89,20 @@ async function seed() {
     if (existingTasks === 0) {
         const tasks = [
             {
-                title: 'Review System Logs',
-                description: 'Analyze audit logs for suspicious activity',
-                category: 'Security',
+                title: 'Parent Org Task',
+                description: 'Should be visible to Parent Admin/Owner',
+                category: 'work',
                 status: 'todo',
                 organizationId: defaultOrg.id,
                 createdBy: admin.id
             },
             {
-                title: 'Update RBAC Permissions',
-                description: 'Refine Owner permissions for multi-tenant support',
-                category: 'Configuration',
+                title: 'Child Org Task',
+                description: 'Should be visible to Parent Admin/Owner AND Child Admin',
+                category: 'personal',
                 status: 'in-progress',
-                organizationId: defaultOrg.id,
-                createdBy: admin.id
-            },
-            {
-                title: 'Design System Unification',
-                description: 'Migrate React components to shared design system',
-                category: 'Migration',
-                status: 'done',
-                organizationId: defaultOrg.id,
-                createdBy: admin.id
-            },
-            {
-                title: 'Performance Audit',
-                description: 'Identify bottlenecks in database queries',
-                category: 'Engineering',
-                status: 'todo',
-                organizationId: defaultOrg.id,
-                createdBy: admin.id
+                organizationId: childOrg.id,
+                createdBy: childAdmin.id
             }
         ];
 
@@ -101,6 +111,23 @@ async function seed() {
             await taskRepo.save(task);
         }
         console.log(`Created ${tasks.length} sample tasks`);
+    }
+
+    // 5. Seed Permissions
+    const permRepo = dataSource.getRepository(Permission);
+    const hasPerms = await permRepo.count();
+    if (hasPerms === 0) {
+        const permissions = [
+            { name: 'CREATE_TASK', role: UserRole.OWNER },
+            { name: 'CREATE_TASK', role: UserRole.ADMIN },
+            { name: 'CREATE_TASK', role: UserRole.VIEWER },
+            { name: 'DELETE_TASK', role: UserRole.OWNER },
+            { name: 'DELETE_TASK', role: UserRole.ADMIN },
+        ];
+        for (const p of permissions) {
+            await permRepo.save(permRepo.create(p));
+        }
+        console.log('Seeded Permissions');
     }
 
     await dataSource.destroy();

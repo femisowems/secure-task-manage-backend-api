@@ -24,6 +24,7 @@ export class TasksService {
     async create(user: User, taskData: Partial<Task>): Promise<Task> {
         // CreateTask: All roles allowed, orgId must match user's org
         if (taskData.organizationId && taskData.organizationId !== user.organizationId) {
+            this.auditService.logAction(user.id, ActionType.CREATE, 'Task', 'BLOCKED: Wrong Org');
             throw new ForbiddenException('Cannot create task in another organization');
         }
 
@@ -49,7 +50,7 @@ export class TasksService {
         if (user.role === UserRole.VIEWER) {
             return this.tasksRepo.find({
                 where: {
-                    createdBy: user.id
+                    organizationId: user.organizationId
                 }
             });
         }
@@ -70,7 +71,10 @@ export class TasksService {
         if (!task) throw new NotFoundException('Task not found');
 
         const allowed = await this.rbacService.canUpdateTask(user, task);
-        if (!allowed) throw new ForbiddenException('Cannot update this task');
+        if (!allowed) {
+            this.auditService.logAction(user.id, ActionType.UPDATE, 'Task', `BLOCKED: Unauthorized ${id}`);
+            throw new ForbiddenException('Cannot update this task');
+        }
 
         Object.assign(task, updateData);
         const updated = await this.tasksRepo.save(task);
@@ -84,7 +88,10 @@ export class TasksService {
         if (!task) throw new NotFoundException('Task not found');
 
         const allowed = await this.rbacService.canDeleteTask(user, task);
-        if (!allowed) throw new ForbiddenException('Cannot delete this task');
+        if (!allowed) {
+            this.auditService.logAction(user.id, ActionType.DELETE, 'Task', `BLOCKED: Unauthorized ${id}`);
+            throw new ForbiddenException('Cannot delete this task');
+        }
 
         await this.tasksRepo.remove(task);
         this.auditService.logAction(user.id, ActionType.DELETE, 'Task', id);
