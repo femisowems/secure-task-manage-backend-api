@@ -28,6 +28,7 @@ async function bootstrap() {
         'http://localhost:4200',
         'https://secure-task-manage-app-angular-dash.vercel.app',
         'https://secure-task-manage-app.vercel.app',
+        'https://manage-app-angular.ssowemimo.com',
         'https://secure-task-manage-backend-api-production.up.railway.app/api',
     ];
 
@@ -36,7 +37,15 @@ async function bootstrap() {
     }
 
     app.enableCors({
-        origin: allowedOrigins,
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin) ||
+                /\.vercel\.app$/.test(origin) ||
+                /\.railway\.app$/.test(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
     });
