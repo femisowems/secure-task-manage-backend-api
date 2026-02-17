@@ -1,81 +1,95 @@
-# Secure Task Management App Angular
+# Secure Task Management API
 
-A premium, enterprise-grade **Secure Task Management Application** featuring a modern Angular frontend and a robust NestJS backend. This project demonstrates advanced security patterns, including Supabase JWT integration, hierarchical Role-Based Access Control (RBAC), and multi-tenant Organization Scoping.
+A robust, enterprise-grade **Secure Task Management API** built with **NestJS**. This project demonstrates advanced security patterns, including Supabase JWT integration, hierarchical Role-Based Access Control (RBAC), multi-tenant Organization Scoping, and comprehensive audit logging.
 
 ## 🚀 Key Features
 
-- **Enterprise Security**: 
+- **Enterprise Security**:
   - **Supabase Auth Integration**: Secure token exchange using Supabase JWTs with ES256 signature validation via JWKS.
   - **Hierarchical RBAC**: Granular permission system (`Owner` > `Admin` > `Viewer`).
   - **Multi-Tenant Scoping**: Strict organization isolation with parent-child relationship support.
   - **Compliance Logging**: Automated audit tracking for all sensitive operations (Create, Update, Delete).
-- **Modern Angular Frontend**:
-  - **Angular Dashboard**: Modern Angular 19+ app utilizing **Signals**, **Angular CDK (Kanban Board)**, and premium Tailwind v4 styling.
-- **Premium Design**:
-  - **Interactive Kanban**: Drag-and-drop task management with real-time status updates.
-  - **Aesthetics**: Glassmorphism UI with Lucide icons and Inter typography.
+  - **Security Best Practices**: Implements `helmet` for security headers and `throttler` for rate limiting.
 
-## 🔑 Test Credentials
+## 🛠️ Tech Stack
 
-| Role | Email | Password | Access Level |
-| :--- | :--- | :--- | :--- |
-| **Owner** | `admin@test.com` | `password123` | Full system access & Audit logs |
-| **Viewer** | `user@test.com` | `password123` | Read-only access to specific org |
+- **Framework**: [NestJS](https://nestjs.com/) (v11)
+- **Database**: SQLite (via [TypeORM](https://typeorm.io/))
+- **Authentication**: [Supabase Auth](https://supabase.com/auth) & [Passport](http://www.passportjs.org/)
+- **Security**: [Helmet](https://helmetjs.github.io/), [Throttler](https://github.com/nestjs/throttler)
+- **Environment**: Node.js
 
-## 🛠️ Setup & Installation
+## 📋 Prerequisites
 
-### 1. Prerequisites
-Ensure you have a [Supabase](https://supabase.com) project created.
+- **Node.js**: v18 or later
+- **Supabase Project**: You need a valid Supabase project for authentication.
 
-### 2. Environment Configuration
-Create a `.env` file in the root directory:
+## ⚙️ Configuration
+
+Create a `.env` file in the root directory with the following variables:
+
 ```env
-# Supabase Configuration
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-
-# Backend Configuration
-SUPABASE_URL=https://your-project.supabase.co
+# Server Configuration
 PORT=3001
-VITE_API_URL=http://localhost:3001/api
+CORS_ORIGIN=http://localhost:4200,https://your-frontend-domain.com
+
+# Database Configuration
+# Uses local SQLite file by default
+DATABASE_URL=database.sqlite
+
+# Supabase Configuration
+# Required for JWT validation
+SUPABASE_URL=https://your-project.supabase.co
 ```
 
-### 3. Install Dependencies
+## 📦 Installation
+
 ```bash
+# Install dependencies
 npm install
 ```
 
-### 4. Run Development Servers
+## 🏃 running the API
 
-| Command | Action | URL |
-| :--- | :--- | :--- |
-| `npm run start:angular` | Start Angular Dashboard | [http://localhost:4200](http://localhost:4200) |
-| `npm run start:api` | Start NestJS Backend | [http://localhost:3001/api](http://localhost:3001/api) |
-| `npm run start:all` | Start EVERYTHING | (All of the above) |
+```bash
+# Development mode
+npm run start
 
-## 🏗️ Architecture Detail
+# Watch mode (recommended for dev)
+npm run start:dev
 
-### Backend (NestJS)
-- **`SupabaseJwtStrategy`**: Validates incoming JWTs against Supabase's public keys (`ES256`).
-- **`RbacService`**: Centralized logic for role inheritance and permission checks.
-- **`OrgScopeService`**: Handles parent/child organization visibility logic.
-
-### Angular Dashboard (Modern)
-- **`Signals`**: state management for high-performance reactive updates.
-- **`CDK Drag & Drop`**: Interactive Kanban board for task management.
-- **`Tailwind v4`**: Automated CLI build for premium styling.
-
-## 📂 Project Structure
-
-```text
-├── apps/api/src/app/       # Backend (NestJS)
-├── apps/dashboard/         # Modern Angular Dashboard (v19)
-│   ├── src/app/core/       # Signals-based Stores & Interceptors
-│   └── src/app/features/   # Kanban Board & Audit Components
-├── libs/                   # Shared Business Logic (RBAC/Org Scoping)
-├── scripts/                # Database migration & utility scripts
-└── database.sqlite         # Local SQLite storage
+# Production mode
+npm run start:prod
 ```
 
+The API will start at `http://localhost:3001/api`.
+
+## 🧪 Testing
+
+```bash
+# Unit tests
+npm run test
+
+# E2E tests
+npm run test:e2e
+
+# Test coverage
+npm run test:cov
+```
+
+## 🔌 API Endpoints
+
+### Authentication (`/auth`)
+- `GET /auth/me` - Get current user profile (requires valid JWT).
+
+### Tasks (`/tasks`)
+- `GET /tasks` - List all tasks for the user's organization.
+- `POST /tasks` - Create a new task.
+- `PUT /tasks/:id` - Update a task.
+- `DELETE /tasks/:id` - Delete a task.
+
+> **Note**: All task endpoints are protected by `JwtAuthGuard` and `RolesGuard`.
+
 ## 📄 License
+
 MIT
