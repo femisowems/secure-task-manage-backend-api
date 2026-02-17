@@ -5,11 +5,15 @@ import { UserRole } from './libs/data/src/lib/enums';
 import * as bcrypt from 'bcrypt';
 
 async function seed() {
+    const isPostgres = process.env.DATABASE_URL?.startsWith('postgres');
+
     const dataSource = new DataSource({
-        type: 'sqlite',
-        database: 'database.sqlite',
+        type: (isPostgres ? 'postgres' : 'sqlite') as any,
+        url: isPostgres ? process.env.DATABASE_URL : undefined,
+        database: isPostgres ? undefined : (process.env.DATABASE_URL || 'database.sqlite'),
         entities: [User, Organization, Task, AuditLog, Permission],
         synchronize: true,
+        ssl: isPostgres ? { rejectUnauthorized: false } : false,
     });
 
     await dataSource.initialize();
@@ -93,6 +97,7 @@ async function seed() {
                 description: 'Should be visible to Parent Admin/Owner',
                 category: 'work',
                 status: 'todo',
+                priority: 'high',
                 organizationId: defaultOrg.id,
                 createdBy: admin.id
             },
@@ -101,6 +106,7 @@ async function seed() {
                 description: 'Should be visible to Parent Admin/Owner AND Child Admin',
                 category: 'personal',
                 status: 'in-progress',
+                priority: 'medium',
                 organizationId: childOrg.id,
                 createdBy: childAdmin.id
             }

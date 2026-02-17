@@ -29,18 +29,26 @@ async function bootstrap() {
         'https://secure-task-manage-app-angular-dash.vercel.app',
         'https://secure-task-manage-app.vercel.app',
         'https://manage-app-angular.ssowemimo.com',
-        'https://secure-task-manage-backend-api-production.up.railway.app/api',
+        'https://secure-task-manage-backend-api-production.up.railway.app',
     ];
 
     if (process.env.CORS_ORIGIN) {
-        allowedOrigins.push(...process.env.CORS_ORIGIN.split(','));
+        allowedOrigins.push(...process.env.CORS_ORIGIN.split(',').map(o => o.trim()));
     }
 
     app.enableCors({
         origin: (origin, callback) => {
-            if (!origin || allowedOrigins.includes(origin) ||
+            if (!origin) {
+                callback(null, true);
+                return;
+            }
+
+            const isAllowed = allowedOrigins.includes(origin) ||
                 /\.vercel\.app$/.test(origin) ||
-                /\.railway\.app$/.test(origin)) {
+                /\.railway\.app$/.test(origin) ||
+                /\.ssowemimo\.com$/.test(origin);
+
+            if (isAllowed) {
                 callback(null, true);
             } else {
                 callback(new Error('Not allowed by CORS'));

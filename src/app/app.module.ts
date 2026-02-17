@@ -13,12 +13,19 @@ import { APP_GUARD } from '@nestjs/core';
 
 @Module({
     imports: [
-        TypeOrmModule.forRoot({
-            type: 'sqlite', // Default to sqlite for ease
-            database: process.env.DATABASE_URL || 'database.sqlite',
-            entities: [User, Organization, Task, AuditLog, Permission],
-            synchronize: true, // Only for dev!
-            logging: true,
+        TypeOrmModule.forRootAsync({
+            useFactory: () => {
+                const isPostgres = process.env.DATABASE_URL?.startsWith('postgres');
+                return {
+                    type: (isPostgres ? 'postgres' : 'sqlite') as any,
+                    url: isPostgres ? process.env.DATABASE_URL : undefined,
+                    database: isPostgres ? undefined : (process.env.DATABASE_URL || 'database.sqlite'),
+                    entities: [User, Organization, Task, AuditLog, Permission],
+                    synchronize: true, // Only for dev!
+                    logging: true,
+                    ssl: isPostgres ? { rejectUnauthorized: false } : false,
+                };
+            }
         }),
         AuthModule,
         UsersModule,

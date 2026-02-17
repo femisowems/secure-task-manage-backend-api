@@ -13,6 +13,9 @@ export class Organization {
     @Column({ type: 'text' })
     name!: string;
 
+    @Column({ type: 'simple-json', nullable: true })
+    settings!: any;
+
     @Column({ type: 'text', nullable: true })
     parentOrganizationId!: string;
 
